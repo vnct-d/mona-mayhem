@@ -1,17 +1,1081 @@
----
-
----
-
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
 		<title>Mona Mayhem</title>
 	</head>
 	<body>
-		<h1>Mona Mayhem</h1>
-		<p>Welcome to Mona Mayhem! Time to build a GitHub Contribution Battle Arena.</p>
+		<main>
+			<section id="battle-hud" class="power-hud" aria-label="Battle power meters" hidden>
+				<div class="power-side power-one">
+					<div class="power-label">
+						<span id="hud-player-one">PLAYER 1</span>
+						<strong><span id="hud-score-one">0</span> / 5</strong>
+					</div>
+					<div id="power-bar-one" class="power-track" role="progressbar" aria-label="Player 1 battle points" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+						<span class="power-fill"></span>
+					</div>
+				</div>
+				<span class="hud-vs" aria-hidden="true">VS</span>
+				<div class="power-side power-two">
+					<div class="power-label">
+						<span id="hud-player-two">PLAYER 2</span>
+						<strong><span id="hud-score-two">0</span> / 5</strong>
+					</div>
+					<div id="power-bar-two" class="power-track" role="progressbar" aria-label="Player 2 battle points" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+						<span class="power-fill"></span>
+					</div>
+				</div>
+			</section>
+
+			<header>
+				<button id="sfx-toggle" class="sfx-toggle" type="button" aria-pressed="true">🔊 SFX: ON</button>
+				<h1>Mona Mayhem</h1>
+				<p class="subtitle">GitHub Contribution Battle Arena</p>
+			</header>
+
+			<section aria-labelledby="battle-form-title">
+				<h2 id="battle-form-title">Choose your players</h2>
+				<form id="battle-form">
+					<label>
+						Player 1
+						<input id="player-one" name="playerOne" type="text" placeholder="octocat" autocomplete="off" />
+					</label>
+					<span class="vs-badge" aria-hidden="true">VS</span>
+					<label>
+						Player 2
+						<input id="player-two" name="playerTwo" type="text" placeholder="your-rival" autocomplete="off" />
+					</label>
+					<button id="battle-button" type="submit">BATTLE!</button>
+				</form>
+				<div class="preset-matchups" aria-label="Quick matchups">
+					<span>Quick matchups:</span>
+					<button type="button" data-player-one="torvalds" data-player-two="gaearon">torvalds vs. gaearon</button>
+					<button type="button" data-player-one="octocat" data-player-two="sindresorhus">octocat vs. sindresorhus</button>
+				</div>
+				<p id="battle-status" class="ready-status" data-state="ready" role="status" aria-live="polite">INSERT COIN <span aria-hidden="true">/</span> READY PLAYER 1</p>
+			</section>
+
+			<section id="battle-arena" aria-labelledby="battle-arena-title" hidden>
+				<h2 id="battle-arena-title">Battle Arena</h2>
+				<section id="battle-scoreboard" class="scoreboard" aria-labelledby="scoreboard-title">
+					<h3 id="scoreboard-title">Battle Score</h3>
+					<p id="winner-banner" class="winner-banner" role="status" aria-live="polite"></p>
+					<p class="score-totals">
+						<span id="player-one-score-label">Player 1</span>:
+						<strong id="player-one-score">0</strong>
+						<span aria-hidden="true">—</span>
+						<span id="player-two-score-label">Player 2</span>:
+						<strong id="player-two-score">0</strong>
+					</p>
+					<div class="table-scroll">
+						<table>
+							<thead>
+								<tr>
+									<th scope="col">Category</th>
+									<th id="player-one-column" scope="col">Player 1</th>
+									<th id="player-two-column" scope="col">Player 2</th>
+									<th scope="col">Point</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr data-stat-row="total">
+									<th scope="row">Total Contributions</th>
+									<td data-stat-value="one-total">—</td>
+									<td data-stat-value="two-total">—</td>
+									<td data-stat-winner="total">—</td>
+								</tr>
+								<tr data-stat-row="longest-streak">
+									<th scope="row">Longest Streak</th>
+									<td data-stat-value="one-longest-streak">—</td>
+									<td data-stat-value="two-longest-streak">—</td>
+									<td data-stat-winner="longest-streak">—</td>
+								</tr>
+								<tr data-stat-row="current-streak">
+									<th scope="row">Current Streak</th>
+									<td data-stat-value="one-current-streak">—</td>
+									<td data-stat-value="two-current-streak">—</td>
+									<td data-stat-winner="current-streak">—</td>
+								</tr>
+								<tr data-stat-row="peak-day">
+									<th scope="row">Most Active Day</th>
+									<td data-stat-value="one-peak-day">—</td>
+									<td data-stat-value="two-peak-day">—</td>
+									<td data-stat-winner="peak-day">—</td>
+								</tr>
+								<tr data-stat-row="consistency">
+									<th scope="row">Consistency</th>
+									<td data-stat-value="one-consistency">—</td>
+									<td data-stat-value="two-consistency">—</td>
+									<td data-stat-winner="consistency">—</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p class="scoring-note">Each category is worth 1 point. A tied category awards 0.5 points to each player.</p>
+				</section>
+
+				<div class="arena">
+					<article class="player-card player-one-card" aria-labelledby="player-one-name">
+						<header class="player-header">
+							<img id="player-one-avatar" class="avatar" alt="" width="48" height="48" />
+							<div>
+								<h3 id="player-one-name">Player 1</h3>
+								<p id="player-one-summary" class="summary"></p>
+								<p id="player-one-class" class="fighter-class" aria-label="Player 1 fighter class"></p>
+							</div>
+						</header>
+						<ol id="player-one-grid" class="contribution-grid" aria-label="Player 1 contributions for the past 52 weeks"></ol>
+					</article>
+
+					<div class="vs-badge arena-vs" aria-hidden="true">VS</div>
+
+					<article class="player-card player-two-card" aria-labelledby="player-two-name">
+						<header class="player-header">
+							<img id="player-two-avatar" class="avatar" alt="" width="48" height="48" />
+							<div>
+								<h3 id="player-two-name">Player 2</h3>
+								<p id="player-two-summary" class="summary"></p>
+								<p id="player-two-class" class="fighter-class" aria-label="Player 2 fighter class"></p>
+							</div>
+						</header>
+						<ol id="player-two-grid" class="contribution-grid" aria-label="Player 2 contributions for the past 52 weeks"></ol>
+					</article>
+				</div>
+			</section>
+
+			<section id="loading-arena" aria-label="Loading contribution data" aria-live="polite" hidden>
+				<div class="arena loading-arena">
+					<article class="player-card skeleton-card">
+						<div class="skeleton skeleton-profile"></div>
+						<div class="skeleton-grid" aria-hidden="true"></div>
+					</article>
+					<article class="player-card skeleton-card">
+						<div class="skeleton skeleton-profile"></div>
+						<div class="skeleton-grid" aria-hidden="true"></div>
+					</article>
+				</div>
+			</section>
+		</main>
+		<div id="battle-countdown" class="countdown-screen" role="status" aria-live="assertive" hidden>
+			<p class="countdown-players"><span id="countdown-player-one">PLAYER 1</span><span>VS</span><span id="countdown-player-two">PLAYER 2</span></p>
+			<p id="countdown-caption">GET READY</p>
+			<strong id="countdown-number">3</strong>
+		</div>
+		<div id="celebration-particles" class="celebration-particles" aria-hidden="true"></div>
+		<script>
+			import '../scripts/battle';
+		</script>
 	</body>
 </html>
+
+<style is:global>
+	:root {
+		color-scheme: dark;
+		font-family: 'JetBrains Mono', monospace;
+		color: #e8f5ff;
+		background: #0a0a12;
+		font-synthesis: none;
+		text-rendering: optimizeLegibility;
+		--cabinet: #10101b;
+		--panel: #151522;
+		--line: #39364e;
+		--cyan: #45f3ff;
+		--green: #5fed83;
+		--magenta: #ff3cac;
+		--gold: #ffd166;
+		--muted: #a4a4bd;
+		--arcade-font: 'Press Start 2P', 'Courier New', monospace;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	:global(html) {
+		min-width: 320px;
+		background: #0a0a12;
+	}
+
+	:global(body) {
+		position: relative;
+		isolation: isolate;
+		min-height: 100vh;
+		margin: 0;
+		overflow-x: hidden;
+		background:
+			radial-gradient(ellipse at 50% 35%, rgb(36 35 65 / 65%) 0, transparent 58%),
+			#0a0a12;
+		color: #e8f5ff;
+	}
+
+	:global(body::before),
+	:global(body::after) {
+		position: fixed;
+		z-index: 10;
+		inset: 0;
+		pointer-events: none;
+		content: '';
+	}
+
+	:global(body::before) {
+		background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0%) 0 3px, rgb(0 0 0 / 17%) 4px);
+		opacity: 0.34;
+	}
+
+	:global(body::after) {
+		background: radial-gradient(ellipse at center, transparent 48%, rgb(0 0 0 / 72%) 100%);
+	}
+
+	button,
+	input {
+		font: inherit;
+	}
+
+	button {
+		cursor: pointer;
+	}
+
+	button:focus-visible,
+	input:focus-visible {
+		outline: 2px solid var(--gold);
+		outline-offset: 4px;
+	}
+
+	main {
+		position: relative;
+		z-index: 1;
+		width: min(1120px, calc(100% - 2rem));
+		margin: 0 auto;
+		padding: 3rem 0 5rem;
+	}
+
+	main > header {
+		margin-bottom: 2.5rem;
+		text-align: center;
+		animation: cabinet-boot 600ms ease-out both;
+	}
+
+	.sfx-toggle {
+		display: block;
+		margin: 0 0 1.5rem auto;
+		border-color: var(--green);
+		color: var(--green);
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.72rem;
+	}
+
+	h1,
+	h2,
+	h3,
+	.score-totals,
+	.winner-banner {
+		font-family: var(--arcade-font);
+		text-transform: uppercase;
+	}
+
+	h1 {
+		margin: 0 0 1rem;
+		color: var(--green);
+		font-size: clamp(1.25rem, 4vw, 2.5rem);
+		line-height: 1.7;
+		text-shadow: 0 0 6px rgb(95 237 131 / 85%), 0 0 22px rgb(95 237 131 / 52%);
+		animation: neon-flicker 3.2s ease-in-out infinite;
+	}
+
+	.subtitle {
+		color: var(--muted);
+		font-size: 0.9rem;
+		letter-spacing: 0.08em;
+	}
+
+	main > section:not([hidden]) {
+		margin: 1.5rem 0;
+		padding: clamp(1rem, 3vw, 1.75rem);
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: linear-gradient(145deg, rgb(21 21 34 / 95%), rgb(13 13 23 / 96%));
+		box-shadow: 0 0 0 1px rgb(69 243 255 / 8%), 0 0 28px rgb(69 243 255 / 7%), inset 0 0 24px rgb(0 0 0 / 40%);
+	}
+
+	h2 {
+		margin: 0 0 1.25rem;
+		color: var(--gold);
+		font-size: clamp(0.7rem, 2vw, 0.9rem);
+		line-height: 1.8;
+		text-shadow: 0 0 10px rgb(255 209 102 / 36%);
+	}
+
+	form {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+		align-items: end;
+		gap: 1rem;
+	}
+
+	form label {
+		display: grid;
+		gap: 0.65rem;
+		color: var(--cyan);
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	form label:nth-of-type(2) {
+		color: var(--magenta);
+	}
+
+	input {
+		width: 100%;
+		min-height: 48px;
+		padding: 0.75rem;
+		border: 1px solid rgb(69 243 255 / 65%);
+		border-radius: 4px;
+		background: #090910;
+		color: #fff;
+		box-shadow: inset 0 0 12px rgb(69 243 255 / 8%), 0 0 12px rgb(69 243 255 / 9%);
+	}
+
+	form label:nth-of-type(2) input {
+		border-color: rgb(255 60 172 / 70%);
+		box-shadow: inset 0 0 12px rgb(255 60 172 / 8%), 0 0 12px rgb(255 60 172 / 9%);
+	}
+
+	input::placeholder {
+		color: #68677d;
+	}
+
+	button {
+		min-height: 42px;
+		padding: 0.7rem 0.9rem;
+		border: 1px solid var(--cyan);
+		border-radius: 4px;
+		background: #111a23;
+		color: var(--cyan);
+		font-weight: 700;
+		box-shadow: 0 0 10px rgb(69 243 255 / 16%), inset 0 0 10px rgb(69 243 255 / 6%);
+		transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+	}
+
+	button:hover:not(:disabled) {
+		transform: translateY(-2px);
+		background: var(--cyan);
+		color: #071014;
+		box-shadow: 0 0 18px rgb(69 243 255 / 55%);
+	}
+
+	button:disabled {
+		cursor: wait;
+		opacity: 0.6;
+	}
+
+	#battle-button {
+		min-height: 48px;
+		border-color: var(--gold);
+		background: #241d14;
+		color: var(--gold);
+		font-family: var(--arcade-font);
+		font-size: 0.65rem;
+		box-shadow: 0 0 15px rgb(255 209 102 / 24%), inset 0 0 12px rgb(255 209 102 / 8%);
+	}
+
+	#battle-button:hover:not(:disabled) {
+		background: var(--gold);
+		color: #15100a;
+		box-shadow: 0 0 24px rgb(255 209 102 / 70%);
+	}
+
+	.vs-badge {
+		align-self: center;
+		color: var(--gold);
+		font-family: var(--arcade-font);
+		font-size: 0.7rem;
+		text-shadow: 0 0 10px rgb(255 209 102 / 65%);
+		animation: vs-pulse 1.8s ease-in-out infinite;
+	}
+
+	.preset-matchups {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.55rem;
+		margin-top: 1.2rem;
+		color: var(--muted);
+		font-size: 0.75rem;
+	}
+
+	.preset-matchups button {
+		min-height: 36px;
+		font-size: 0.7rem;
+	}
+
+	#battle-status {
+		min-height: 1.5rem;
+		margin: 1.4rem 0 0;
+		color: var(--green);
+		font-size: 0.78rem;
+		font-weight: 700;
+		text-align: center;
+		text-shadow: 0 0 9px currentColor;
+	}
+
+	#battle-status[data-state='ready'] {
+		animation: coin-blink 1s steps(2, start) infinite;
+	}
+
+	#battle-status[data-state='loading'] {
+		color: var(--gold);
+		animation: coin-blink 700ms steps(2, start) infinite;
+	}
+
+	#battle-status[data-state='error'] {
+		color: #ff647c;
+	}
+
+	.arena {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.player-card,
+	.scoreboard {
+		min-width: 0;
+		padding: 1rem;
+		overflow: hidden;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: linear-gradient(150deg, #171724, #0d0d16);
+	}
+
+	.player-one-card {
+		border-color: rgb(69 243 255 / 70%);
+		box-shadow: 0 0 16px rgb(69 243 255 / 13%), inset 0 0 18px rgb(69 243 255 / 4%);
+	}
+
+	.player-two-card {
+		border-color: rgb(255 60 172 / 70%);
+		box-shadow: 0 0 16px rgb(255 60 172 / 13%), inset 0 0 18px rgb(255 60 172 / 4%);
+	}
+
+	.player-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+		margin-bottom: 1rem;
+	}
+
+	.player-header h3 {
+		margin: 0;
+		overflow-wrap: anywhere;
+		font-size: 0.7rem;
+		line-height: 1.7;
+	}
+
+	.player-one-card h3 {
+		color: var(--cyan);
+		text-shadow: 0 0 10px rgb(69 243 255 / 52%);
+	}
+
+	.player-two-card h3 {
+		color: var(--magenta);
+		text-shadow: 0 0 10px rgb(255 60 172 / 52%);
+	}
+
+	.summary {
+		margin: 0.5rem 0 0;
+		color: var(--muted);
+		font-size: 0.7rem;
+		line-height: 1.6;
+	}
+
+	.fighter-class {
+		display: table;
+		margin: 0.65rem 0 0;
+		padding: 0.4rem 0.55rem;
+		border: 1px solid currentColor;
+		border-radius: 3px;
+		color: var(--cyan);
+		font-family: var(--arcade-font);
+		font-size: 0.48rem;
+		line-height: 1.8;
+		text-shadow: 0 0 8px currentColor;
+		box-shadow: 0 0 9px rgb(69 243 255 / 15%);
+	}
+
+	.player-two-card .fighter-class {
+		color: var(--magenta);
+		box-shadow: 0 0 9px rgb(255 60 172 / 15%);
+	}
+
+	.avatar {
+		flex: 0 0 auto;
+		width: 48px;
+		height: 48px;
+		border: 2px solid var(--cyan);
+		border-radius: 50%;
+		box-shadow: 0 0 12px rgb(69 243 255 / 45%);
+	}
+
+	.player-two-card .avatar {
+		border-color: var(--magenta);
+		box-shadow: 0 0 12px rgb(255 60 172 / 45%);
+	}
+
+	.arena-vs {
+		color: var(--gold);
+	}
+
+	.scoreboard {
+		margin-bottom: 1.5rem;
+		border-color: rgb(255 209 102 / 65%);
+		box-shadow: 0 0 18px rgb(255 209 102 / 10%), inset 0 0 18px rgb(255 209 102 / 3%);
+	}
+
+	.scoreboard h3 {
+		margin: 0;
+		color: var(--gold);
+		font-size: 0.75rem;
+		text-align: center;
+	}
+
+	.winner-banner {
+		min-height: 1.5em;
+		color: var(--green);
+		font-size: clamp(0.55rem, 1.5vw, 0.75rem);
+		line-height: 1.8;
+		text-align: center;
+		text-shadow: 0 0 12px currentColor;
+	}
+
+	.winner-banner[data-result='tie'] {
+		color: var(--gold);
+	}
+
+	.score-totals {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--muted);
+		font-size: 0.6rem;
+		line-height: 1.8;
+	}
+
+	#player-one-score-label,
+	#player-one-score {
+		color: var(--cyan);
+		text-shadow: 0 0 10px rgb(69 243 255 / 40%);
+	}
+
+	#player-two-score-label,
+	#player-two-score {
+		color: var(--magenta);
+		text-shadow: 0 0 10px rgb(255 60 172 / 40%);
+	}
+
+	.table-scroll {
+		overflow-x: auto;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.75rem;
+		text-align: left;
+	}
+
+	th,
+	td {
+		padding: 0.7rem;
+		border-bottom: 1px solid rgb(164 164 189 / 16%);
+	}
+
+	thead th {
+		font-family: var(--arcade-font);
+		font-size: 0.5rem;
+		line-height: 1.8;
+	}
+
+	#player-one-column {
+		color: var(--cyan);
+	}
+
+	#player-two-column {
+		color: var(--magenta);
+	}
+
+	tbody th {
+		color: var(--muted);
+		font-weight: 500;
+	}
+
+	tr[data-winner='one'] [data-stat-value^='one-'] {
+		color: var(--cyan);
+		font-weight: 700;
+		text-shadow: 0 0 8px rgb(69 243 255 / 48%);
+	}
+
+	tr[data-winner='two'] [data-stat-value^='two-'] {
+		color: var(--magenta);
+		font-weight: 700;
+		text-shadow: 0 0 8px rgb(255 60 172 / 48%);
+	}
+
+	tr[data-winner='tie'] [data-stat-value] {
+		color: var(--gold);
+		font-weight: 700;
+		text-shadow: 0 0 8px rgb(255 209 102 / 45%);
+	}
+
+	[data-stat-winner] {
+		color: var(--gold);
+		text-align: center;
+	}
+
+	.scoring-note {
+		margin-bottom: 0;
+		color: var(--muted);
+		font-size: 0.75rem;
+	}
+
+	.contribution-grid {
+		display: grid;
+		grid-template-columns: repeat(52, 0.65rem);
+		grid-template-rows: repeat(7, 0.65rem);
+		grid-auto-flow: column;
+		gap: 4px;
+		width: max-content;
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.contribution-cell {
+		width: 0.65rem;
+		height: 0.65rem;
+		border: 1px solid rgb(150 150 180 / 12%);
+		border-radius: 2px;
+		background: #171722;
+		opacity: 0;
+		transform: scale(0.35);
+		transition: opacity 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+	}
+
+	.contribution-cell[data-revealed='true'] {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	.contribution-cell:hover {
+		z-index: 1;
+		transform: scale(1.55);
+	}
+
+	.player-one-card .contribution-cell[data-level='0'] {
+		background: #171722;
+	}
+
+	.player-one-card .contribution-cell[data-level='1'] {
+		background: #075c51;
+		box-shadow: 0 0 4px rgb(69 243 255 / 24%);
+	}
+
+	.player-one-card .contribution-cell[data-level='2'] {
+		background: #078875;
+		box-shadow: 0 0 6px rgb(69 243 255 / 42%);
+	}
+
+	.player-one-card .contribution-cell[data-level='3'] {
+		background: #21c9a7;
+		box-shadow: 0 0 9px rgb(69 243 255 / 68%);
+	}
+
+	.player-one-card .contribution-cell[data-level='4'] {
+		background: #91ffe4;
+		box-shadow: 0 0 13px rgb(69 243 255 / 95%);
+	}
+
+	.player-two-card .contribution-cell[data-level='0'] {
+		background: #171722;
+	}
+
+	.player-two-card .contribution-cell[data-level='1'] {
+		background: #70204f;
+		box-shadow: 0 0 4px rgb(255 60 172 / 24%);
+	}
+
+	.player-two-card .contribution-cell[data-level='2'] {
+		background: #a12570;
+		box-shadow: 0 0 6px rgb(255 60 172 / 42%);
+	}
+
+	.player-two-card .contribution-cell[data-level='3'] {
+		background: #e23b9a;
+		box-shadow: 0 0 9px rgb(255 60 172 / 68%);
+	}
+
+	.player-two-card .contribution-cell[data-level='4'] {
+		background: #ffb84d;
+		box-shadow: 0 0 13px rgb(255 209 102 / 95%);
+	}
+
+	#battle-arena[hidden],
+	#loading-arena[hidden] {
+		display: none;
+	}
+
+	#loading-arena .player-card {
+		min-height: 145px;
+	}
+
+	.skeleton {
+		background: #29283a;
+		animation: pulse 1.2s ease-in-out infinite alternate;
+	}
+
+	.skeleton-profile {
+		width: 70%;
+		height: 3rem;
+		margin-bottom: 1rem;
+	}
+
+	.skeleton-grid {
+		height: 6rem;
+		background-image: repeating-linear-gradient(90deg, #2c2b40 0 0.65rem, transparent 0.65rem 0.85rem);
+		background-size: 0.85rem 0.85rem;
+		animation: pulse 1.2s ease-in-out infinite alternate;
+	}
+
+	.power-hud {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: center;
+		gap: 1rem;
+		margin: 0 0 2rem;
+		padding: 1rem;
+		border: 1px solid var(--gold);
+		border-radius: 6px;
+		background: rgb(10 10 18 / 94%);
+		box-shadow: 0 0 18px rgb(255 209 102 / 20%);
+	}
+
+	#battle-hud[hidden],
+	#battle-countdown[hidden] {
+		display: none;
+	}
+
+	.power-label {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-bottom: 0.4rem;
+		font-family: var(--arcade-font);
+		font-size: clamp(0.42rem, 1.2vw, 0.58rem);
+		line-height: 1.8;
+	}
+
+	.power-one .power-label {
+		color: var(--cyan);
+	}
+
+	.power-two .power-label {
+		color: var(--magenta);
+	}
+
+	.power-track {
+		height: 14px;
+		overflow: hidden;
+		border: 1px solid currentColor;
+		border-radius: 3px;
+		background: #090910;
+		box-shadow: inset 0 0 8px rgb(0 0 0 / 80%);
+	}
+
+	.power-one .power-track {
+		color: var(--cyan);
+	}
+
+	.power-two .power-track {
+		color: var(--magenta);
+	}
+
+	.power-fill {
+		display: block;
+		width: 0;
+		height: 100%;
+		background: currentColor;
+		box-shadow: 0 0 12px currentColor;
+		transition: width 350ms ease-out;
+	}
+
+	.power-two .power-fill {
+		margin-left: auto;
+	}
+
+	.hud-vs {
+		color: var(--gold);
+		font-family: var(--arcade-font);
+		font-size: 0.65rem;
+		text-shadow: 0 0 12px var(--gold);
+	}
+
+	.countdown-screen {
+		position: fixed;
+		z-index: 20;
+		inset: 0;
+		display: grid;
+		align-content: center;
+		justify-items: center;
+		gap: 0.5rem;
+		padding: 1rem;
+		background: rgb(5 5 12 / 94%);
+		text-align: center;
+	}
+
+	.countdown-screen[hidden] {
+		display: none;
+	}
+
+	.countdown-players {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
+		font-family: var(--arcade-font);
+		font-size: clamp(0.5rem, 2vw, 0.8rem);
+	}
+
+	.countdown-players span:first-child {
+		color: var(--cyan);
+		text-shadow: 0 0 12px var(--cyan);
+	}
+
+	.countdown-players span:last-child {
+		color: var(--magenta);
+		text-shadow: 0 0 12px var(--magenta);
+	}
+
+	#countdown-caption {
+		color: var(--gold);
+		font-family: var(--arcade-font);
+		font-size: clamp(0.65rem, 2vw, 1rem);
+	}
+
+	#countdown-number {
+		color: var(--green);
+		font-family: var(--arcade-font);
+		font-size: clamp(4rem, 18vw, 9rem);
+		line-height: 1.2;
+		text-shadow: 0 0 12px currentColor, 0 0 40px currentColor;
+	}
+
+	#countdown-number.countdown-pop {
+		animation: countdown-pop 600ms ease-out both;
+	}
+
+	tbody tr {
+		opacity: 0;
+		transform: translateY(8px);
+		transition: opacity 250ms ease, transform 250ms ease;
+	}
+
+	tbody tr[data-revealed='true'] {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.winner-banner.victory-animation {
+		animation: victory-pop 750ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+	}
+
+	.celebration-particles {
+		position: fixed;
+		z-index: 25;
+		inset: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.celebration-particles span {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 7px;
+		height: 12px;
+		border-radius: 1px;
+		background: var(--particle-color);
+		box-shadow: 0 0 10px var(--particle-color);
+		animation: particle-burst 1.3s ease-out forwards;
+	}
+
+	body.screen-shake main {
+		animation: screen-shake 420ms ease-in-out;
+	}
+
+	@keyframes countdown-pop {
+		from {
+			opacity: 0;
+			transform: scale(1.7);
+		}
+
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	@keyframes victory-pop {
+		0% {
+			opacity: 0;
+			transform: scale(0.45);
+		}
+
+		70% {
+			opacity: 1;
+			transform: scale(1.12);
+		}
+
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes screen-shake {
+		15%,
+		45%,
+		75% {
+			transform: translateX(-6px);
+		}
+
+		30%,
+		60%,
+		90% {
+			transform: translateX(6px);
+		}
+	}
+
+	@keyframes particle-burst {
+		from {
+			opacity: 1;
+			transform: translate(-50%, -50%) rotate(0) scale(1);
+		}
+
+		to {
+			opacity: 0;
+			transform: translate(var(--particle-x), var(--particle-y)) rotate(720deg) scale(0.3);
+		}
+	}
+
+	@keyframes coin-blink {
+		to {
+			opacity: 0.25;
+		}
+	}
+
+	@keyframes pulse {
+		to {
+			opacity: 0.45;
+		}
+	}
+
+	@keyframes vs-pulse {
+		50% {
+			transform: scale(1.12);
+			text-shadow: 0 0 18px rgb(255 209 102 / 90%);
+		}
+	}
+
+	@keyframes neon-flicker {
+		0%,
+		19%,
+		21%,
+		63%,
+		65%,
+		100% {
+			opacity: 1;
+		}
+
+		20%,
+		64% {
+			opacity: 0.75;
+		}
+	}
+
+	@keyframes cabinet-boot {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (max-width: 760px) {
+		form {
+			grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		}
+
+		#battle-button {
+			grid-column: 1 / -1;
+		}
+
+		.arena {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.arena-vs {
+			text-align: center;
+		}
+	}
+
+	@media (max-width: 520px) {
+		main {
+			width: min(100% - 1rem, 1120px);
+			padding-top: 1.5rem;
+		}
+
+		form {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		form .vs-badge {
+			text-align: center;
+		}
+
+		.contribution-grid {
+			grid-template-columns: repeat(52, 0.5rem);
+			grid-template-rows: repeat(7, 0.5rem);
+			gap: 2px;
+		}
+
+		.contribution-cell {
+			width: 0.5rem;
+			height: 0.5rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			scroll-behavior: auto !important;
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+		}
+	}
+</style>
